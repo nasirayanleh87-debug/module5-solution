@@ -38,30 +38,44 @@ var showLoading = function (selector) {
 
 // Return substitute of '{{propName}}'
 // with propValue in given 'string'
-var insertProperty = function (string, propName, propValue) {
-  var propToReplace = "{{" + propName + "}}";
-  string = string
-    .replace(new RegExp(propToReplace, "g"), propValue);
-  return string;
-};
-
-// Remove the class 'active' from home and switch to Menu button
-var switchMenuToActive = function () {
-  // Remove 'active' from home button
-  var classes = document.querySelector("#navHomeButton").className;
-  classes = classes.replace(new RegExp("active", "g"), "");
-  document.querySelector("#navHomeButton").className = classes;
-
-  // Add 'active' to menu button if not already there
-  classes = document.querySelector("#navMenuButton").className;
-  if (classes.indexOf("active") === -1) {
-    classes += " active";
-    document.querySelector("#navMenuButton").className = classes;
-  }
-};
-
 // On page load (before images or CSS)
 document.addEventListener("DOMContentLoaded", function (event) {
+
+  // Show spinner while loading categories
+  showLoading("#main-content");
+
+  // Fetch categories JSON instead of home directly
+  $ajaxUtils.sendGetRequest(
+    allCategoriesUrl,
+    buildAndShowHomeHTML,
+    true
+  );
+});
+// ==================== RANDOM SPECIALS HOME LOGIC ====================
+
+// Pick a random category from returned API list
+function chooseRandomCategory(categories) {
+  var randomIndex = Math.floor(Math.random() * categories.length);
+  return categories[randomIndex];
+}
+
+// Build home page with random category assigned to {{randomCategoryShortName}}
+function buildAndShowHomeHTML(categories) {
+  $ajaxUtils.sendGetRequest(
+    homeHtmlUrl,
+    function(homeHtml) {
+
+      var randomCategory = chooseRandomCategory(categories);      // pick one
+      var shortName = "'" + randomCategory.short_name + "'";      // format correctly
+      var homeFinalHtml = insertProperty(homeHtml,
+        "randomCategoryShortName",
+        shortName);
+
+      insertHtml("#main-content", homeFinalHtml);
+    },
+    false
+  );
+}
 
 // TODO: STEP 0: Look over the code from
 // *** start ***
